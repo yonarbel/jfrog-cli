@@ -4,6 +4,11 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"os"
+	"runtime"
+	"sort"
+	"strings"
+
 	"github.com/agnivade/levenshtein"
 	artifactoryCLI "github.com/jfrog/jfrog-cli-artifactory/cli"
 	corecommon "github.com/jfrog/jfrog-cli-core/v2/docs/common"
@@ -39,10 +44,6 @@ import (
 	clientlog "github.com/jfrog/jfrog-client-go/utils/log"
 	"github.com/urfave/cli"
 	"golang.org/x/exp/slices"
-	"os"
-	"runtime"
-	"sort"
-	"strings"
 )
 
 const commandHelpTemplate string = `{{.HelpName}}{{if .UsageText}}
@@ -272,6 +273,13 @@ func getCommands() ([]cli.Command, error) {
 			HelpName:     corecommon.CreateUsage("how", aiDocs.GetDescription(), aiDocs.Usage),
 			BashComplete: corecommon.CreateBashCompletionFunc(),
 			Action:       ai.HowCmd,
+		},
+		{
+			Name:         "mcp",
+			Usage:        aiDocs.GetDescription(),
+			HelpName:     corecommon.CreateUsage("how", aiDocs.GetDescription(), aiDocs.Usage),
+			BashComplete: corecommon.CreateBashCompletionFunc(),
+			Action:       ai.StartMcpServer,
 		},
 		{
 			Name:         "access-token-create",

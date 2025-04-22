@@ -3,9 +3,15 @@ package ai
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"net/http"
+	"os"
+	"strings"
+
 	"github.com/jfrog/jfrog-cli-core/v2/utils/coreutils"
 	"github.com/jfrog/jfrog-cli/utils/cliutils"
 	"github.com/jfrog/jfrog-client-go/artifactory/services/utils"
@@ -14,11 +20,9 @@ import (
 	"github.com/jfrog/jfrog-client-go/utils/errorutils"
 	"github.com/jfrog/jfrog-client-go/utils/log"
 	"github.com/manifoldco/promptui"
+	"github.com/mark3labs/mcp-go/mcp"
+	"github.com/mark3labs/mcp-go/server"
 	"github.com/urfave/cli"
-	"io"
-	"net/http"
-	"os"
-	"strings"
 )
 
 type ApiCommand string
@@ -222,4 +226,61 @@ func handleAiTermsAgreement() (bool, error) {
 		log.Output()
 	}
 	return true, nil
+}
+
+func StartMcpServer(c *cli.Context) error {
+
+	log.Output(coreutils.PrintLink("Starting MCP server...\n"))
+	// Create MCP server
+	s := server.NewMCPServer(
+		"Demo 🚀",
+		"1.0.0",
+	)
+
+	// Add tool
+	tool := mcp.NewTool("hello_world",
+		mcp.WithDescription("Say hello to someone"),
+		mcp.WithString("name",
+			mcp.Required(),
+			mcp.Description("Name of the person to greet"),
+		),
+	)
+
+	getBuildsTool := mcp.NewTool("get_builds",
+		mcp.WithDescription("getBuilds"),
+	)
+
+	// Add tool handler
+	s.AddTool(tool, helloHandler)
+	s.AddTool(getBuildsTool, getBuildsHandler)
+
+	// Start the stdio server
+	if err := server.ServeStdio(s); err != nil {
+		fmt.Printf("Server error: %v\n", err)
+		return err
+	}
+	return nil
+}
+
+func helloHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	name, ok := request.Params.Arguments["name"].(string)
+	if !ok {
+		return nil, errors.New("name must be a string")
+	}
+
+	return mcp.NewToolResultText(fmt.Sprintf("Hello, %s!", name)), nil
+}
+
+func getBuildsHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	builds, err := fetchBuilds() // Assume fetchBuilds is a function that retrieves the list of builds
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch builds: %w", err)
+	}
+	return mcp.NewToolResultText(fmt.Sprintf("Builds: %v", builds)), nil
+}
+
+func fetchBuilds() ([]string, error) {
+	// Implement the logic to fetch the list of builds
+	// For example, you might make an API call to retrieve the builds
+	return []string{"build1", "build2", "build3"}, nil
 }
