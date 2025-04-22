@@ -277,9 +277,9 @@ func getCommands() ([]cli.Command, error) {
 		{
 			Name:         "mcp",
 			Usage:        aiDocs.GetDescription(),
+			Subcommands:  ai.GetCommands(),
 			HelpName:     corecommon.CreateUsage("how", aiDocs.GetDescription(), aiDocs.Usage),
 			BashComplete: corecommon.CreateBashCompletionFunc(),
-			Action:       ai.StartMcpServer,
 		},
 		{
 			Name:         "access-token-create",

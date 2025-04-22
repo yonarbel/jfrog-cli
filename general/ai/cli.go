@@ -284,3 +284,15 @@ func fetchBuilds() ([]string, error) {
 	// For example, you might make an API call to retrieve the builds
 	return []string{"build1", "build2", "build3"}, nil
 }
+
+func GetCommands() []cli.Command {
+	return cliutils.GetSortedCommands(cli.CommandsByName{
+		{
+			Name:     "run",
+			Usage:    "Run a command",
+			Flags:    cliutils.GetCommandFlags(cliutils.AddConfig),
+			HelpName: "run",
+			Action:   StartMcpServer,
+		},
+	})
+}
